@@ -12,7 +12,7 @@ const WebXRButton = (props: WebXRButtonProps) => {
   const handleClick = async () => {
     if (await xr?.isSessionSupported("immersive-ar"))
       xr.requestSession("immersive-ar", {
-        requiredFeatures: ["local", "dom-overlay"],
+        requiredFeatures: ["local", "hit-test", "anchors", "depth-sensing"],
         depthSensing: {
           usagePreference: ["cpu-optimized", "gpu-optimized"],
           dataFormatPreference: ["luminance-alpha", "float32"],

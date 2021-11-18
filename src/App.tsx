@@ -4,7 +4,7 @@ import { Scene } from "./renderer/scenes/scene.js";
 import { Renderer, createWebGLContext } from "./renderer/core/renderer.js";
 import WebXRButton from "./components/WebXRButton";
 import type { XRHitTestSource, XRReferenceSpace, XRSession } from "webxr";
-import { XRWebGLLayer } from "webxr";
+import type { XRWebGLLayer } from "webxr";
 
 interface AppProps {}
 
@@ -22,6 +22,7 @@ function App({}: AppProps) {
       scene.setRenderer(renderer);
 
       session.updateRenderState({
+        // @ts-ignore
         baseLayer: new XRWebGLLayer(session, gl as WebGLRenderingContext),
         depthFar: 1000,
         depthNear: 0.1,
