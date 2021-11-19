@@ -3,26 +3,11 @@ import React from "react";
 import type { XRSystem, XRSession } from "@types/webxr";
 
 interface WebXRButtonProps {
-  onSessionStarted: (session: XRSession) => void;
+  initXR: () => void;
 }
 
 const WebXRButton = (props: WebXRButtonProps) => {
-  const xr = (navigator as any)?.xr as XRSystem;
-
-  const handleClick = async () => {
-    if (await xr?.isSessionSupported("immersive-ar"))
-      xr.requestSession("immersive-ar", {
-        requiredFeatures: ["local", "hit-test", "anchors", "depth-sensing"],
-        depthSensing: {
-          usagePreference: ["cpu-optimized", "gpu-optimized"],
-          dataFormatPreference: ["luminance-alpha", "float32"],
-        },
-      }).then((session) => {
-        props.onSessionStarted(session);
-      });
-  };
-
-  return <button onClick={handleClick}>start</button>;
+  return <button onClick={props.initXR}>start</button>;
 };
 
 export default WebXRButton;
