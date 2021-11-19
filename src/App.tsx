@@ -2,6 +2,8 @@ import React from "react";
 import type {
   XRFrame,
   XRHitTestSource,
+  XRPose,
+  XRRay,
   XRReferenceSpace,
   XRRigidTransform,
   XRSession,
@@ -17,7 +19,10 @@ import "./App.css";
 import { Scene } from "./renderer/scenes/scene.js";
 import { Renderer, createWebGLContext } from "./renderer/core/renderer.js";
 import WebXRButton from "./components/WebXRButton";
-import { getOrientationAbs } from "./ts/quaternionToEuler";
+import { getOrientationAbs, multiply } from "./ts/vectors";
+import { Gltf2Node } from "./renderer/nodes/gltf2";
+// @ts-ignore
+import * as reticleTest from "./media/gltf/reticle/reticle.gltf";
 
 interface AppProps {}
 
@@ -26,6 +31,14 @@ function App({}: AppProps) {
   let xrViewerSpace: XRReferenceSpace;
   let xrRefSpace: XRReferenceSpace;
   let xrHitTestSource: XRHitTestSource;
+  let xrPose: XRPose | null;
+  let xrDepth: number | null;
+
+  let reticle = new Gltf2Node({
+    url: "./dist/media/gltf/reticle/reticle.gltf",
+  });
+  reticle.visible = false;
+  scene.addNode(reticle);
 
   // absolute orientation sensor
   const options = { frequency: 60, referenceFrame: "device" };
@@ -94,9 +107,47 @@ function App({}: AppProps) {
 
   const onXRFrame = (t: number, frame: XRFrame) => {
     let session = frame.session;
-    console.log(t, "session started:", session);
+    xrPose = frame.getViewerPose(xrRefSpace);
 
+    if (xrPose) {
+      const depthData = frame
+        // @ts-ignore
+        .getDepthInformation(xrPose.views[0]);
+      if (depthData) xrDepth = depthData.getDepthInMeters(0.5, 0.5);
+
+      // TODO: Show reticle only using depth data while calibrating
+      // TODO: Only use depth data while calibrating
+      if (xrDepth) {
+        // add depth data to improve reticle accuracy
+        // @ts-ignore
+        let ray = new XRRay(xrPose.transform);
+        let rayDirectionVector = [
+          ray.direction.x,
+          ray.direction.y,
+          ray.direction.z,
+        ];
+        let rayPositionVector = [ray.origin.x, ray.origin.y, ray.origin.z];
+        let hitTestVector = multiply(rayDirectionVector, xrDepth);
+
+        reticle.translation = rayPositionVector.map(
+          (value, index) => value + hitTestVector[index],
+        );
+      } else if (xrHitTestSource) {
+        let hitTestResult = frame.getHitTestResults(xrHitTestSource);
+
+        if (hitTestResult.length > 0) {
+          let pose = hitTestResult[0].getPose(xrRefSpace);
+          reticle.visible = true;
+
+          reticle.matrix = pose?.transform.matrix;
+        } else reticle.visible = false;
+      } else reticle.visible = false;
+    }
+
+    scene.startFrame();
     session.requestAnimationFrame(onXRFrame);
+    scene.drawXRFrame(frame, xrPose);
+    scene.endFrame;
   };
 
   return (

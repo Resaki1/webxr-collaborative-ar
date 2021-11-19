@@ -15,3 +15,5 @@ export const convertToEuler = (quat: number[]) => {
 };
 
 export const getOrientationAbs = (quat: number[]) => convertToEuler(quat)[0];
+
+export const multiply = (v: number[], c: number) => v.map((x) => x * c);
