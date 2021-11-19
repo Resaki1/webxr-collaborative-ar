@@ -1,4 +1,4 @@
-button {
+.xrButton {
   height: 48px;
   width: 96px;
   border-radius: 8px;
@@ -10,9 +10,9 @@ button {
   font-size: 0.7rem;
 }
 
-button:hover {
+.xrButton:hover {
   background-color: #7df481af;
 }
-button:focus {
+.xrButton:focus {
   background-color: #7df481af;
 }

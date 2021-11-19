@@ -1,0 +1,9 @@
+#overlay {
+  display: none;
+  height: 100%;
+  width: 100%;
+  padding: 2vh;
+  justify-content: center;
+  align-items: flex-end;
+  color: #7df481;
+}

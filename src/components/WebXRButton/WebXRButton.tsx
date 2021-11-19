@@ -8,7 +8,11 @@ interface WebXRButtonProps {
 }
 
 const WebXRButton = (props: WebXRButtonProps) => {
-  return <button onClick={props.initXR}>ENTER AR</button>;
+  return (
+    <button className="xrButton" onClick={props.initXR}>
+      ENTER AR
+    </button>
+  );
 };
 
 export default WebXRButton;

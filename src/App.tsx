@@ -20,9 +20,12 @@ import type { AbsoluteOrientationSensor } from "w3c-generic-sensor";
 import "./App.css";
 import { Scene } from "./renderer/scenes/scene.js";
 import { Renderer, createWebGLContext } from "./renderer/core/renderer.js";
-import WebXRButton from "./components/WebXRButton/WebXRButton";
-import { getOrientationAbs, multiply } from "./ts/vectors";
 import { Gltf2Node } from "./renderer/nodes/gltf2";
+
+import { getOrientationAbs, multiply } from "./ts/vectors";
+
+import WebXRButton from "./components/WebXRButton/WebXRButton";
+import DomOverlay from "./components/DomOverlay/DomOverlay";
 
 // import GLTFs so that snowpack includes them during compilation
 // @ts-ignore
@@ -33,6 +36,8 @@ import * as sunflowerGltf from "./media/gltf/sunflower/sunflower.gltf";
 interface AppProps {}
 
 function App({}: AppProps) {
+  const [calibratingState, setCalibratingState] = React.useState(true);
+  let calibrating = true;
   const scene = new Scene();
   let xrViewerSpace: XRReferenceSpace;
   let xrRefSpace: XRReferenceSpace;
@@ -47,6 +52,7 @@ function App({}: AppProps) {
   });
   reticle.visible = false;
   scene.addNode(reticle);
+  scene.enableStats(false);
 
   // absolute orientation sensor
   const options = { frequency: 60, referenceFrame: "device" };
@@ -66,10 +72,27 @@ function App({}: AppProps) {
     });
   };
 
+  const resetRefSpace = (hitTestPosition: number[]) => {
+    xrRefSpace = xrRefSpace.getOffsetReferenceSpace(
+      // @ts-ignore
+      new XRRigidTransform({
+        x: hitTestPosition[0],
+        y: hitTestPosition[1],
+        z: hitTestPosition[2],
+      }),
+    );
+  };
+
   const onSelected = () => {
     if (reticle.visible) {
-      // TODO: differentiate between calibration and "play" phase
-      if (reticleHitTestResult) {
+      // TODO: add networking
+      // TODO: check if another players pose is available, otherwise reset to reticle position
+      if (calibrating) {
+        resetRefSpace(reticle.translation);
+        // TODO: change to only one calibrating variable
+        setCalibratingState(false);
+        calibrating = false;
+      } else if (reticleHitTestResult) {
         // create an anchor
         // @ts-ignore
         reticleHitTestResult
@@ -88,7 +111,14 @@ function App({}: AppProps) {
 
     if (await xr?.isSessionSupported("immersive-ar"))
       xr.requestSession("immersive-ar", {
-        requiredFeatures: ["local", "hit-test", "anchors", "depth-sensing"],
+        requiredFeatures: [
+          "local",
+          "hit-test",
+          "anchors",
+          "depth-sensing",
+          "dom-overlay",
+        ],
+        domOverlay: { root: document.getElementById("overlay") },
         depthSensing: {
           usagePreference: ["cpu-optimized", "gpu-optimized"],
           dataFormatPreference: ["luminance-alpha", "float32"],
@@ -100,6 +130,8 @@ function App({}: AppProps) {
 
   const onSessionStarted = (session: XRSession) => {
     session.addEventListener("select", onSelected);
+    const domOverlay = document.getElementById("overlay");
+    if (domOverlay) domOverlay.style.display = "flex";
 
     const gl = createWebGLContext({ xrCompatible: true });
     if (gl) {
@@ -151,10 +183,7 @@ function App({}: AppProps) {
         .getDepthInformation(xrPose.views[0]);
       if (depthData) xrDepth = depthData.getDepthInMeters(0.5, 0.5);
 
-      // TODO: Show reticle only using depth data while calibrating
-      // TODO: Only use depth data while calibrating
-      xrDepth = null;
-      if (xrDepth) {
+      if (calibrating && xrDepth) {
         // add depth data to improve reticle accuracy
         // @ts-ignore
         let ray = new XRRay(xrPose.transform);
@@ -200,6 +229,7 @@ function App({}: AppProps) {
   return (
     <div className="App">
       <WebXRButton initXR={initXR} />
+      <DomOverlay calibrating={calibratingState} />
     </div>
   );
 }
