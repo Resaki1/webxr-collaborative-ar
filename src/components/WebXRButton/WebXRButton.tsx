@@ -1,4 +1,5 @@
 import React from "react";
+import "./WebXRButton.css";
 // @ts-ignore
 import type { XRSystem, XRSession } from "@types/webxr";
 
@@ -7,7 +8,7 @@ interface WebXRButtonProps {
 }
 
 const WebXRButton = (props: WebXRButtonProps) => {
-  return <button onClick={props.initXR}>start</button>;
+  return <button onClick={props.initXR}>ENTER AR</button>;
 };
 
 export default WebXRButton;

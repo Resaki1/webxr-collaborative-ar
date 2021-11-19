@@ -20,7 +20,7 @@ import type { AbsoluteOrientationSensor } from "w3c-generic-sensor";
 import "./App.css";
 import { Scene } from "./renderer/scenes/scene.js";
 import { Renderer, createWebGLContext } from "./renderer/core/renderer.js";
-import WebXRButton from "./components/WebXRButton";
+import WebXRButton from "./components/WebXRButton/WebXRButton";
 import { getOrientationAbs, multiply } from "./ts/vectors";
 import { Gltf2Node } from "./renderer/nodes/gltf2";
 
@@ -183,7 +183,6 @@ function App({}: AppProps) {
       } else reticle.visible = false;
     }
 
-    console.log(anchoredObjects);
     for (const { anchoredObject, anchor } of anchoredObjects) {
       // only update the object's position if it's still in the list
       // of frame.trackedAnchors
