@@ -16,6 +16,8 @@ import type {
 import { Quaternion } from "quaternion";
 // @ts-ignore
 import type { AbsoluteOrientationSensor } from "w3c-generic-sensor";
+// @ts-ignore
+import { joinRoom } from "trystero";
 
 import "./App.css";
 import { Scene } from "./renderer/scenes/scene.js";
@@ -46,6 +48,7 @@ function App({}: AppProps) {
   let xrDepth: number | null;
   let reticleHitTestResult: XRHitTestResult | null;
   let anchoredObjects: { anchoredObject: Gltf2Node; anchor: XRAnchor }[] = [];
+  let room: any;
 
   let reticle = new Gltf2Node({
     url: "./dist/media/gltf/reticle/reticle.gltf",
@@ -132,6 +135,15 @@ function App({}: AppProps) {
     session.addEventListener("select", onSelected);
     const domOverlay = document.getElementById("overlay");
     if (domOverlay) domOverlay.style.display = "flex";
+
+    // Networking
+    if (!room) room = joinRoom({ appId: "ar-p2p" }, "1");
+    room.onPeerJoin((id: any) => {
+      console.log(`${id} joined`);
+    });
+    room.onPeerLeave((id: any) => {
+      console.log(`${id} left`);
+    });
 
     const gl = createWebGLContext({ xrCompatible: true });
     if (gl) {
@@ -228,6 +240,7 @@ function App({}: AppProps) {
 
   return (
     <div className="App">
+      {/* TODO: disable button if AR is not available */}
       <WebXRButton initXR={initXR} />
       <DomOverlay calibrating={calibratingState} />
     </div>
