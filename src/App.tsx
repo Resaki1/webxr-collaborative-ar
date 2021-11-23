@@ -47,8 +47,14 @@ function App({}: AppProps) {
   let xrPose: XRPose | null;
   let xrDepth: number | null;
   let reticleHitTestResult: XRHitTestResult | null;
-  let anchoredObjects: { anchoredObject: Gltf2Node; anchor: XRAnchor }[] = [];
+  let anchoredObjects: {
+    anchoredObject: Gltf2Node;
+    anchor: XRAnchor;
+    broadcasted: boolean;
+  }[] = [];
   let room: any;
+  let sendObject: any;
+  let getObject: any;
 
   let reticle = new Gltf2Node({
     url: "./dist/media/gltf/reticle/reticle.gltf",
@@ -64,14 +70,18 @@ function App({}: AppProps) {
 
   const xr = (navigator as any)?.xr as XRSystem;
 
+  const flower = new Gltf2Node({
+    url: "./dist/media/gltf/sunflower/sunflower.gltf",
+  });
   const addAnchoredObjectsToScene = (anchor: XRAnchor) => {
-    const flower = new Gltf2Node({
+    const object = new Gltf2Node({
       url: "./dist/media/gltf/sunflower/sunflower.gltf",
     });
-    scene.addNode(flower);
+    scene.addNode(object);
     anchoredObjects.push({
-      anchoredObject: flower,
+      anchoredObject: object,
       anchor: anchor,
+      broadcasted: false,
     });
   };
 
@@ -85,6 +95,19 @@ function App({}: AppProps) {
       }),
     );
   };
+
+  React.useEffect(() => {
+    console.log("useEffect:", room);
+    // Networking
+    if (!room) room = joinRoom({ appId: "ar-p2p" }, "1");
+    room.onPeerJoin((id: any) => {
+      console.log(`${id} joined`);
+    });
+    room.onPeerLeave((id: any) => {
+      console.log(`${id} left`);
+    });
+    [sendObject, getObject] = room.makeAction("place");
+  }, [room]);
 
   const onSelected = () => {
     if (reticle.visible) {
@@ -136,13 +159,13 @@ function App({}: AppProps) {
     const domOverlay = document.getElementById("overlay");
     if (domOverlay) domOverlay.style.display = "flex";
 
-    // Networking
-    if (!room) room = joinRoom({ appId: "ar-p2p" }, "1");
-    room.onPeerJoin((id: any) => {
-      console.log(`${id} joined`);
-    });
-    room.onPeerLeave((id: any) => {
-      console.log(`${id} left`);
+    getObject((data: { matrix: number[] }) => {
+      const newObject = new Gltf2Node({
+        url: "./dist/media/gltf/sunflower/sunflower.gltf",
+      });
+      newObject.visible = true;
+      newObject.matrix = data.matrix;
+      scene.addNode(newObject);
     });
 
     const gl = createWebGLContext({ xrCompatible: true });
@@ -224,13 +247,23 @@ function App({}: AppProps) {
       } else reticle.visible = false;
     }
 
-    for (const { anchoredObject, anchor } of anchoredObjects) {
-      // only update the object's position if it's still in the list
-      // of frame.trackedAnchors
-      if (!frame.trackedAnchors?.has(anchor)) continue;
-      const anchorPose = frame.getPose(anchor.anchorSpace, xrRefSpace);
-      if (anchorPose) anchoredObject.matrix = anchorPose.transform.matrix;
-    }
+    anchoredObjects.forEach((anchoredObject) => {
+      if (frame.trackedAnchors?.has(anchoredObject.anchor)) {
+        const anchorPose = frame.getPose(
+          anchoredObject.anchor.anchorSpace,
+          xrRefSpace,
+        );
+        if (anchorPose) {
+          anchoredObject.anchoredObject.matrix = anchorPose.transform.matrix;
+
+          // PROBLEM: Objekt wird nur einmal geschickt und nicht geupdated
+          if (!anchoredObject.broadcasted) {
+            sendObject({ matrix: [...anchorPose.transform.matrix] });
+            anchoredObject.broadcasted = true;
+          }
+        }
+      }
+    });
 
     scene.startFrame();
     session.requestAnimationFrame(onXRFrame);
