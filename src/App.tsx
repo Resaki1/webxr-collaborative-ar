@@ -55,6 +55,11 @@ function App({}: AppProps) {
   let room: any;
   let sendObject: any;
   let getObject: any;
+  let sendPose: any;
+  let getPose: any;
+  let calibratedPose: {
+    position: { x: number; y: number; z: number; w: number };
+  };
 
   let reticle = new Gltf2Node({
     url: "./dist/media/gltf/reticle/reticle.gltf",
@@ -86,18 +91,19 @@ function App({}: AppProps) {
   };
 
   const resetRefSpace = (hitTestPosition: number[]) => {
-    xrRefSpace = xrRefSpace.getOffsetReferenceSpace(
-      // @ts-ignore
-      new XRRigidTransform({
-        x: hitTestPosition[0],
-        y: hitTestPosition[1],
-        z: hitTestPosition[2],
-      }),
-    );
+    if (calibratedPose) {
+      xrRefSpace = xrRefSpace.getOffsetReferenceSpace(
+        // @ts-ignore
+        new XRRigidTransform({
+          x: hitTestPosition[0] - calibratedPose.position.x,
+          y: hitTestPosition[1] - calibratedPose.position.y,
+          z: hitTestPosition[2] - calibratedPose.position.z,
+        }),
+      );
+    }
   };
 
   React.useEffect(() => {
-    console.log("useEffect:", room);
     // Networking
     if (!room) room = joinRoom({ appId: "ar-p2p" }, "1");
     room.onPeerJoin((id: any) => {
@@ -106,7 +112,17 @@ function App({}: AppProps) {
     room.onPeerLeave((id: any) => {
       console.log(`${id} left`);
     });
+
     [sendObject, getObject] = room.makeAction("place");
+    [sendPose, getPose] = room.makeAction("move");
+
+    getPose(
+      (data: { position: { x: number; y: number; z: number; w: number } }) => {
+        if (calibrating) {
+          calibratedPose = data;
+        }
+      },
+    );
   }, [room]);
 
   const onSelected = () => {
@@ -238,6 +254,7 @@ function App({}: AppProps) {
         let hitTestResults = frame.getHitTestResults(xrHitTestSource);
 
         if (hitTestResults.length > 0) {
+          sendPose({ position: xrPose.transform.position });
           let pose = hitTestResults[0].getPose(xrRefSpace);
           reticleHitTestResult = hitTestResults[0];
           reticle.visible = true;
