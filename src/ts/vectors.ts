@@ -14,6 +14,21 @@ export const convertToEuler = (quat: number[]) => {
   return euler;
 };
 
-export const getOrientationAbs = (quat: number[]) => convertToEuler(quat)[0];
+export const getOrientationAbs = (quat: number[]) => convertToEuler(quat)[1];
+
+export const isolateYaw = (quat: {
+  w: number;
+  x: number;
+  y: number;
+  z: number;
+}) => {
+  const mag = Math.sqrt(quat.w * quat.w + quat.y * quat.y);
+  return {
+    w: quat.w / mag,
+    x: 0,
+    y: quat.y / mag,
+    z: 0,
+  };
+};
 
 export const multiply = (v: number[], c: number) => v.map((x) => x * c);

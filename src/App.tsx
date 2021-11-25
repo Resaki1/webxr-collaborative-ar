@@ -24,7 +24,7 @@ import { Scene } from "./renderer/scenes/scene.js";
 import { Renderer, createWebGLContext } from "./renderer/core/renderer.js";
 import { Gltf2Node } from "./renderer/nodes/gltf2";
 
-import { getOrientationAbs, multiply } from "./ts/vectors";
+import { isolateYaw, multiply } from "./ts/vectors";
 
 import WebXRButton from "./components/WebXRButton/WebXRButton";
 import DomOverlay from "./components/DomOverlay/DomOverlay";
@@ -59,6 +59,7 @@ function App({}: AppProps) {
   let getPose: any;
   let calibratedPose: {
     position: { x: number; y: number; z: number; w: number };
+    orientation: { x: number; y: number; z: number; w: number };
   };
 
   let reticle = new Gltf2Node({
@@ -90,16 +91,28 @@ function App({}: AppProps) {
     });
   };
 
-  const resetRefSpace = (hitTestPosition: number[]) => {
-    if (calibratedPose) {
+  // PROBLEM: Kompass oft zu ungenau
+  // LÖSUNG: Geräte aneinander halten und Pose übernehmen
+  const resetRefSpace = () => {
+    if (calibratedPose && xrPose) {
+      const rotationQuaternion = new Quaternion(
+        isolateYaw(xrPose.transform.orientation),
+      ).div(isolateYaw(calibratedPose.orientation));
+
       xrRefSpace = xrRefSpace.getOffsetReferenceSpace(
         // @ts-ignore
-        new XRRigidTransform({
-          x: hitTestPosition[0] - calibratedPose.position.x,
-          y: hitTestPosition[1] - calibratedPose.position.y,
-          z: hitTestPosition[2] - calibratedPose.position.z,
-        }),
+        new XRRigidTransform(
+          {
+            x: xrPose?.transform.position.x - calibratedPose.position.x,
+            y: xrPose?.transform.position.y - calibratedPose.position.y,
+            z: xrPose?.transform.position.z - calibratedPose.position.z,
+          },
+          rotationQuaternion,
+        ),
       );
+
+      setCalibratingState(false);
+      calibrating = false;
     }
   };
 
@@ -117,7 +130,10 @@ function App({}: AppProps) {
     [sendPose, getPose] = room.makeAction("move");
 
     getPose(
-      (data: { position: { x: number; y: number; z: number; w: number } }) => {
+      (data: {
+        position: { x: number; y: number; z: number; w: number };
+        orientation: { x: number; y: number; z: number; w: number };
+      }) => {
         if (calibrating) {
           calibratedPose = data;
         }
@@ -127,13 +143,12 @@ function App({}: AppProps) {
 
   const onSelected = () => {
     if (reticle.visible) {
-      // TODO: add networking
       // TODO: check if another players pose is available, otherwise reset to reticle position
       if (calibrating) {
-        resetRefSpace(reticle.translation);
+        //resetRefSpace(/* reticle.translation */);
         // TODO: change to only one calibrating variable
-        setCalibratingState(false);
-        calibrating = false;
+        /* setCalibratingState(false);
+        calibrating = false; */
       } else if (reticleHitTestResult) {
         // create an anchor
         // @ts-ignore
@@ -207,18 +222,6 @@ function App({}: AppProps) {
       session.requestReferenceSpace("local").then((refSpace) => {
         xrRefSpace = refSpace;
 
-        // rotate refSpace to match absolute orientation
-        const rotationQuaternion = Quaternion.fromEuler(
-          0,
-          0,
-          -1 * getOrientationAbs(sensor.quaternion),
-        );
-
-        xrRefSpace = xrRefSpace.getOffsetReferenceSpace(
-          // @ts-ignore
-          new XRRigidTransform({}, rotationQuaternion),
-        );
-
         session.requestAnimationFrame(onXRFrame);
       });
     }
@@ -226,9 +229,10 @@ function App({}: AppProps) {
 
   const onXRFrame = (t: number, frame: XRFrame) => {
     let session = frame.session;
-    xrPose = frame.getViewerPose(xrRefSpace);
+    const currentPose = frame.getViewerPose(xrRefSpace);
 
-    if (xrPose) {
+    if (currentPose) {
+      xrPose = currentPose;
       const depthData = frame
         // @ts-ignore
         .getDepthInformation(xrPose.views[0]);
@@ -254,7 +258,10 @@ function App({}: AppProps) {
         let hitTestResults = frame.getHitTestResults(xrHitTestSource);
 
         if (hitTestResults.length > 0) {
-          sendPose({ position: xrPose.transform.position });
+          sendPose({
+            position: xrPose.transform.position,
+            orientation: xrPose.transform.orientation,
+          });
           let pose = hitTestResults[0].getPose(xrRefSpace);
           reticleHitTestResult = hitTestResults[0];
           reticle.visible = true;
@@ -292,7 +299,7 @@ function App({}: AppProps) {
     <div className="App">
       {/* TODO: disable button if AR is not available */}
       <WebXRButton initXR={initXR} />
-      <DomOverlay calibrating={calibratingState} />
+      <DomOverlay calibrating={calibratingState} calibrate={resetRefSpace} />
     </div>
   );
 }
