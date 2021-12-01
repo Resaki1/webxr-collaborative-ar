@@ -1,0 +1,31 @@
+#overlay {
+  display: none;
+  height: 100%;
+  width: 100%;
+  padding: 2vh;
+  flex-direction: column;
+  justify-content: space-between;
+  align-items: center;
+  color: #7df481;
+}
+
+.instructions {
+  background-color: #f4f7ff;
+  color: #7df481;
+  padding: 8px;
+  border-radius: 8px;
+  box-shadow: 0px 2px 12px #f4f7ff;
+  text-align: center;
+}
+
+.calibrateButton {
+  height: 48px;
+  width: 96px;
+  border-radius: 8px;
+  border: none;
+  background-color: #7df481;
+  box-shadow: 0px 2px 12px #7df481;
+  color: #f4f7ff;
+  font-weight: bold;
+  font-size: 0.7rem;
+}
