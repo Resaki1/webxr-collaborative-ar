@@ -14,6 +14,7 @@ import type {
   XRHitTestResult,
   XRReferenceSpace,
 } from "webxr";
+import { useThree } from "@react-three/fiber";
 
 type GLTFResult = GLTF & {
   nodes: {
@@ -30,7 +31,6 @@ interface ReticleProps {
     anchor: XRAnchor;
   }) => void;
   placeObject: (data: any) => void;
-  refSpace?: XRReferenceSpace;
 }
 
 export default function Reticle(props: ReticleProps) {
@@ -40,6 +40,9 @@ export default function Reticle(props: ReticleProps) {
   ) as GLTFResult;
   const [currentHit, setCurrentHit] = useState<XRHitTestResult>();
 
+  const state = useThree();
+  const xrRefSpace = state.gl.xr.getReferenceSpace()
+  
   useHitTest((hitMatrix, hit) => {
     setCurrentHit(hit);
     hitMatrix.decompose(
@@ -50,9 +53,9 @@ export default function Reticle(props: ReticleProps) {
   });
 
   useXREvent("select", () => {
-    if (currentHit && props.refSpace) {
-      // @ts-ignore
-      const pose = currentHit.getPose(props.refSpace);
+    if (currentHit && xrRefSpace) {
+      const pose = currentHit.getPose(xrRefSpace);
+      
       if (pose) {
         // @ts-ignore
         currentHit.createAnchor().then((anchor: XRAnchor) => {

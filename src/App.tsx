@@ -122,7 +122,6 @@ function App({}: AppProps) {
           <Calibration
             setCalibrating={setCalibratingState}
             pushAnchoredObject={pushAnchoredObject}
-            refSpace={xrRefSpaceState}
             setRefSpace={setXrRefSpace}
           />
         ) : (
@@ -131,7 +130,6 @@ function App({}: AppProps) {
               <Reticle
                 pushAnchoredObject={pushAnchoredObject}
                 placeObject={(data: any) => placeObject(data)}
-                refSpace={xrRefSpaceState}
               />
               <ReceivedObjects objects={receivedObjects} />
             </>
@@ -139,7 +137,6 @@ function App({}: AppProps) {
         )}
         <Anchors
           anchoredObjects={anchoredObjectsState}
-          refSpace={xrRefSpaceState}
         />
       </Suspense>
     </ARCanvas>

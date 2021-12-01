@@ -20,7 +20,6 @@ interface CalibrationProps {
     anchoredObject: any;
     anchor: XRAnchor;
   }) => void;
-  refSpace?: XRReferenceSpace;
   setRefSpace: React.Dispatch<
     React.SetStateAction<XRReferenceSpace | undefined>
   >;
@@ -32,7 +31,7 @@ export default function Calibration(props: CalibrationProps) {
   const [anchors, setAnchors] = useState<XRAnchor[]>();
 
   const state = useThree();
-  const xr = state.gl.xr;
+  const xrRefSpace = state.gl.xr.getReferenceSpace();
 
   let isCalibrating = true;
 
@@ -49,7 +48,7 @@ export default function Calibration(props: CalibrationProps) {
   });
 
   useXREvent("select", () => {
-    if (currentHit && props.refSpace) {
+    if (currentHit) {
       // @ts-ignore
       currentHit.createAnchor().then((anchor: XRAnchor) => {
         props.pushAnchoredObject({
@@ -68,20 +67,15 @@ export default function Calibration(props: CalibrationProps) {
   });
 
   useXRFrame((time, xrFrame: XRFrame) => {
-    if (!props.refSpace)
-      xrFrame.session
-        .requestReferenceSpace("local")
-        .then((refSpace) => props.setRefSpace(refSpace));
-
     if (anchors?.length === 2 && isCalibrating) {
       const originAnchor = xrFrame.getPose(
         anchors[0].anchorSpace,
-        props.refSpace!,
+        xrRefSpace,
       )?.transform.position;
 
       const rotationAnchor = xrFrame.getPose(
         anchors[1].anchorSpace,
-        props.refSpace!,
+        xrRefSpace,
       )?.transform.position;
 
       if (originAnchor && rotationAnchor) {
@@ -105,11 +99,7 @@ export default function Calibration(props: CalibrationProps) {
         console.log(originAnchor);
         console.log(rigidTransform);
 
-
-        xr.setOffsetReferenceSpace(props.refSpace?.getOffsetReferenceSpace(rigidTransform))
-        /* props.setRefSpace(
-          props.refSpace?.getOffsetReferenceSpace(rigidTransform),
-        ); */
+        state.gl.xr.setReferenceSpace(xrRefSpace.getOffsetReferenceSpace(rigidTransform))
       }
 
       isCalibrating = false;

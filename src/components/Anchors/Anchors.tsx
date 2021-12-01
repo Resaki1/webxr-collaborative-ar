@@ -3,28 +3,29 @@ import * as THREE from "three";
 import { useXR, useXRFrame } from "@react-three/xr";
 import React, { Fragment, useEffect, useState } from "react";
 import type { XRAnchor, XRFrame, XRReferenceSpace } from "webxr";
+import { useThree } from "@react-three/fiber";
 
 interface AnchorsProps {
   anchoredObjects?: {
     anchoredObject: any;
     anchor: XRAnchor;
   }[];
-  refSpace?: XRReferenceSpace;
 }
 
 export function Anchors(props: AnchorsProps) {
   const [positions, setPositions] = useState<number[][]>();
   const [key, setKey] = useState(0);
 
-  useEffect(() => console.log("refSpace changed"), [props.refSpace]);
+  const state = useThree();
+  const xrRefSpace = state.gl.xr.getReferenceSpace();
+  
   useXRFrame((time, xrFrame: XRFrame) => {
-    if (props.refSpace) {
+    if (xrRefSpace) {
       props.anchoredObjects?.forEach((object, index) => {
         if (xrFrame.trackedAnchors?.has(object.anchor)) {
           const anchorPose = xrFrame.getPose(
             object.anchor.anchorSpace,
-            // @ts-ignore
-            props.refSpace,
+            xrRefSpace,
           );
 
           if (anchorPose) {
