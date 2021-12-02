@@ -35,20 +35,30 @@ export function Anchors(props: AnchorsProps) {
               anchorPose.transform.position.z,
             ];
 
+
+
             if (newPositions && newPositions[index]) {
+              /* console.log(position);
+              console.log(newPositions[index]); */
+              console.log(1)
+
               newPositions[index] = position;
               setPositions(newPositions);
             } else if (newPositions) {
+              console.log(2)
+
               newPositions.push(position);
               setPositions(newPositions);
             } else {
+              console.log(3)
+              
               newPositions = [position];
               setPositions(newPositions);
             }
-            setKey(key + 1);
           }
         }
       });
+            setKey(key + 1);
     }
   });
 
@@ -56,6 +66,7 @@ export function Anchors(props: AnchorsProps) {
     // TODO: führt schnell zu viel zu vielen Rerendern durch automatisches updaten
     <Fragment key={key}>
       {props.anchoredObjects?.map((object, index) => {
+        console.log("anchor rerender")
         if (positions && positions[index]) {
           return (
             <mesh position={positions[index]} key={index}>
