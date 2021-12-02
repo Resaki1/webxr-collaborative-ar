@@ -47,7 +47,14 @@ export default function Calibration(props: CalibrationProps) {
       currentHit.createAnchor().then((anchor: XRAnchor) => {
         props.pushAnchoredObject({
           anchor,
-          anchoredObject: <octahedronGeometry args={[0.1, 0]} />,
+          anchoredObject: (
+            <mesh>
+              <octahedronGeometry args={[0.1, 0]} />
+              <meshStandardMaterial
+                color={anchors?.length !== 1 ? "#051c59" : "#7df481"}
+              />
+            </mesh>
+          ),
         });
 
         let newAnchors = anchors;
@@ -104,6 +111,9 @@ export default function Calibration(props: CalibrationProps) {
   return (
     <mesh ref={mesh}>
       <octahedronGeometry args={[0.1, 0]} />
+      <meshStandardMaterial
+        color={anchors?.length !== 1 ? "#051c59" : "#7df481"}
+      />
     </mesh>
   );
 }

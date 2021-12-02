@@ -71,6 +71,7 @@ function App() {
   return (
     <ARCanvas sessionInit={{ requiredFeatures: ["hit-test", "anchors"] }}>
       <ambientLight />
+      <spotLight position={[10, 10, 10]} angle={0.15} penumbra={1} />
       <Suspense fallback={null}>
         {calibratingState ? (
           <Calibration
@@ -88,9 +89,7 @@ function App() {
             </>
           )
         )}
-        <Anchors
-          anchoredObjects={anchoredObjectsState}
-        />
+        <Anchors anchoredObjects={anchoredObjectsState} />
       </Suspense>
     </ARCanvas>
   );
