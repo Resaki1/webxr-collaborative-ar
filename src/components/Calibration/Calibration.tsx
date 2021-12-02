@@ -1,16 +1,13 @@
 import { useHitTest, useXREvent, useXRFrame } from "@react-three/xr";
-import React, { useEffect, useRef, useState } from "react";
+import React, { useRef, useState } from "react";
 // @ts-ignore
 import * as THREE from "three";
 import type {
   XRAnchor,
   XRFrame,
   XRHitTestResult,
-  XRReferenceSpace,
   XRRigidTransform,
 } from "webxr";
-// @ts-ignore
-import * as Quaternion from "quaternion";
 import { isolateYaw } from "../../ts/vectors";
 import { useThree } from "@react-three/fiber";
 
@@ -20,9 +17,6 @@ interface CalibrationProps {
     anchoredObject: any;
     anchor: XRAnchor;
   }) => void;
-  setRefSpace: React.Dispatch<
-    React.SetStateAction<XRReferenceSpace | undefined>
-  >;
 }
 
 export default function Calibration(props: CalibrationProps) {
@@ -92,19 +86,12 @@ export default function Calibration(props: CalibrationProps) {
           xAxis,
           dirVector,
         )
-        console.log(isolateYaw(rotationQuaternion))
-        // calculate rotation between directionVector and x-axis
-        /* const rotationQuaternion = new Quaternion.fromBetweenVectors(
-          [1, 0, 0],
-          [directionVector.x, directionVector.y, directionVector.z],
-        ); */
+
         // @ts-ignore
         const rigidTransform = new XRRigidTransform(
           originAnchor,
           isolateYaw(rotationQuaternion),
         );
-        console.log(originAnchor);
-        console.log(rigidTransform);
 
         state.gl.xr.setReferenceSpace(xrRefSpace.getOffsetReferenceSpace(rigidTransform))
       }

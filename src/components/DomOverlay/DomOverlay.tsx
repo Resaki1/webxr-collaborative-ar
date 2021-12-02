@@ -1,4 +1,3 @@
-import React from "react";
 import "./DomOverlay.css";
 
 interface DomOverlayProps {

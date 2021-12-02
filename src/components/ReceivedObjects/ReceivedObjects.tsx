@@ -1,4 +1,4 @@
-import React, { Fragment, useEffect, useState } from "react";
+import { Fragment, useEffect, useState } from "react";
 
 interface ReceivedObjectsProps {
   objects: {
@@ -10,7 +10,6 @@ interface ReceivedObjectsProps {
 export function ReceivedObjects(props: ReceivedObjectsProps) {
   const [key, setKey] = useState(0);
   useEffect(() => {
-    console.log(props.objects);
     setKey(key + 1);
   }, [props.objects]);
 

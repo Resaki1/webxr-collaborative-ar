@@ -1,8 +1,7 @@
-// @ts-ignore
-import * as THREE from "three";
-import { useXR, useXRFrame } from "@react-three/xr";
-import React, { Fragment, useEffect, useState } from "react";
-import type { XRAnchor, XRFrame, XRReferenceSpace } from "webxr";
+
+import { useXRFrame } from "@react-three/xr";
+import { Fragment, useState } from "react";
+import type { XRAnchor, XRFrame } from "webxr";
 import { useThree } from "@react-three/fiber";
 
 interface AnchorsProps {
