@@ -10,7 +10,7 @@ import type {
   XRRigidTransform,
 } from "webxr";
 // @ts-ignore
-import { Quaternion } from "quaternion";
+import * as Quaternion from "quaternion";
 import { isolateYaw } from "../../ts/vectors";
 import { useThree } from "@react-three/fiber";
 
@@ -86,6 +86,13 @@ export default function Calibration(props: CalibrationProps) {
           w: 1,
         };
 
+        const xAxis = new THREE.Vector3(1,0,0)
+        const dirVector = new THREE.Vector3(directionVector.x, directionVector.y, directionVector.z)
+        const rotationQuaternion = new THREE.Quaternion().setFromUnitVectors(
+          xAxis,
+          dirVector,
+        )
+        console.log(isolateYaw(rotationQuaternion))
         // calculate rotation between directionVector and x-axis
         /* const rotationQuaternion = new Quaternion.fromBetweenVectors(
           [1, 0, 0],
@@ -94,7 +101,7 @@ export default function Calibration(props: CalibrationProps) {
         // @ts-ignore
         const rigidTransform = new XRRigidTransform(
           originAnchor,
-          /* isolateYaw(rotationQuaternion), */
+          isolateYaw(rotationQuaternion),
         );
         console.log(originAnchor);
         console.log(rigidTransform);
