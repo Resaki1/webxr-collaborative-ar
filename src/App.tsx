@@ -27,15 +27,18 @@ function App() {
   >([]);
 
   const [room, setRoom] = useState<any>();
-  const [sendObject, setSendObject] = useState(
-    () => (data: any) => undefined,
-  );
+  const [sendObject, setSendObject] = useState(() => (_: any) => undefined);
 
   const pushAnchoredObject = (anchoredObject: {
     anchoredObject: any;
     anchor: XRAnchor;
   }) => {
     setAnchoredObjects([...anchoredObjectsState, anchoredObject]);
+  };
+
+  const pushReceivedObject = (newObject: any) => {
+    setReceivedObjects([...receivedObjects, newObject]);
+    console.log(receivedObjects);
   };
 
   React.useEffect(() => {
@@ -59,7 +62,7 @@ function App() {
           object: <boxGeometry args={[0.1, 0.1, 0.1]} />,
           matrix: data,
         };
-        setReceivedObjects([...receivedObjects, newObject]);
+        pushReceivedObject(newObject);
       });
     }
   }, [room]);
