@@ -32,12 +32,11 @@ export default function Calibration(props: CalibrationProps) {
   useHitTest((hitMatrix, hit) => {
     if (isCalibrating) {
       setCurrentHit(hit);
-      if (mesh.current)
-        hitMatrix.decompose(
-          mesh.current.position,
-          mesh.current.rotation,
-          mesh.current.scale,
-        );
+      hitMatrix.decompose(
+        mesh.current.position,
+        mesh.current.rotation,
+        mesh.current.scale
+      );
     }
   });
 
@@ -49,7 +48,7 @@ export default function Calibration(props: CalibrationProps) {
           anchor,
           anchoredObject: (
             <mesh>
-              <octahedronGeometry args={[0.1, 0]} />
+              <octahedronGeometry args={[0.05, 0]} />
               <meshStandardMaterial
                 color={anchors?.length !== 1 ? "#051c59" : "#7df481"}
               />
@@ -67,17 +66,13 @@ export default function Calibration(props: CalibrationProps) {
     }
   });
 
-  useXRFrame((time, xrFrame: XRFrame) => {
+  useXRFrame((_, xrFrame: XRFrame) => {
     if (anchors?.length === 2 && isCalibrating) {
-      const originAnchor = xrFrame.getPose(
-        anchors[0].anchorSpace,
-        xrRefSpace,
-      )?.transform.position;
+      const originAnchor = xrFrame.getPose(anchors[0].anchorSpace, xrRefSpace)
+        ?.transform.position;
 
-      const rotationAnchor = xrFrame.getPose(
-        anchors[1].anchorSpace,
-        xrRefSpace,
-      )?.transform.position;
+      const rotationAnchor = xrFrame.getPose(anchors[1].anchorSpace, xrRefSpace)
+        ?.transform.position;
 
       if (originAnchor && rotationAnchor) {
         const directionVector = {
@@ -87,20 +82,26 @@ export default function Calibration(props: CalibrationProps) {
           w: 1,
         };
 
-        const xAxis = new THREE.Vector3(1,0,0)
-        const dirVector = new THREE.Vector3(directionVector.x, directionVector.y, directionVector.z)
+        const xAxis = new THREE.Vector3(1, 0, 0);
+        const dirVector = new THREE.Vector3(
+          directionVector.x,
+          directionVector.y,
+          directionVector.z
+        );
         const rotationQuaternion = new THREE.Quaternion().setFromUnitVectors(
           xAxis,
-          dirVector,
-        )
+          dirVector
+        );
 
         // @ts-ignore
         const rigidTransform = new XRRigidTransform(
           originAnchor,
-          isolateYaw(rotationQuaternion),
+          isolateYaw(rotationQuaternion)
         );
 
-        state.gl.xr.setReferenceSpace(xrRefSpace.getOffsetReferenceSpace(rigidTransform))
+        state.gl.xr.setReferenceSpace(
+          xrRefSpace.getOffsetReferenceSpace(rigidTransform)
+        );
       }
 
       isCalibrating = false;
@@ -110,7 +111,7 @@ export default function Calibration(props: CalibrationProps) {
 
   return (
     <mesh ref={mesh}>
-      <octahedronGeometry args={[0.1, 0]} />
+      <octahedronGeometry args={[0.05, 0]} />
       <meshStandardMaterial
         color={anchors?.length !== 1 ? "#051c59" : "#7df481"}
       />

@@ -1,6 +1,5 @@
-
 import { useXRFrame } from "@react-three/xr";
-import { Fragment, useState } from "react";
+import { Fragment, useEffect, useRef } from "react";
 import type { XRAnchor, XRFrame } from "webxr";
 import { useThree } from "@react-three/fiber";
 
@@ -12,65 +11,43 @@ interface AnchorsProps {
 }
 
 export function Anchors(props: AnchorsProps) {
-  const [positions, setPositions] = useState<number[][]>();
-  const [key, setKey] = useState(0);
+  const objectsRef = useRef<any>([]);
 
-  const state = useThree();
-  const xrRefSpace = state.gl.xr.getReferenceSpace();
-  
-  useXRFrame((time, xrFrame: XRFrame) => {
+  useEffect(() => {
+    objectsRef.current = objectsRef.current.slice(
+      0,
+      props.anchoredObjects?.length
+    );
+  }, [props.anchoredObjects]);
+
+  const xrRefSpace = useThree().gl.xr.getReferenceSpace();
+
+  useXRFrame((_, xrFrame: XRFrame) => {
     if (xrRefSpace) {
-      let updateAnchors = false;
-      props.anchoredObjects?.forEach((object, index) => {
-        if (xrFrame.trackedAnchors?.has(object.anchor)) {
+      props.anchoredObjects?.forEach((value, index) => {
+        if (xrFrame.trackedAnchors?.has(value.anchor)) {
           const anchorPose = xrFrame.getPose(
-            object.anchor.anchorSpace,
-            xrRefSpace,
+            value.anchor.anchorSpace,
+            xrRefSpace
           );
+          const object = objectsRef.current[index];
 
-          if (anchorPose) {
-            let newPositions = positions;
-            const position = [
-              anchorPose.transform.position.x,
-              anchorPose.transform.position.y,
-              anchorPose.transform.position.z,
-            ];
-
-            if (newPositions && newPositions[index]) {
-              const samePosition = position.every((value, i) => value === newPositions![index][i])
-              if (!samePosition) updateAnchors = true;
-
-              newPositions[index] = position;
-              setPositions(newPositions);
-            } else if (newPositions) {
-              updateAnchors = true;
-
-              newPositions.push(position);
-              setPositions(newPositions);
-            } else {
-              updateAnchors = true;
-              
-              newPositions = [position];
-              setPositions(newPositions);
-            }
-          }
+          object.position.x = anchorPose?.transform.position.x;
+          object.position.y = anchorPose?.transform.position.y;
+          object.position.z = anchorPose?.transform.position.z;
         }
       });
-      if (updateAnchors) setKey(key + 1);
     }
   });
 
   return (
-    // TODO: führt schnell zu viel zu vielen Rerendern durch automatisches updaten
-    <Fragment key={key}>
+    <Fragment>
       {props.anchoredObjects?.map((object, index) => {
-        if (positions && positions[index]) {
-          return (
-            <mesh position={positions[index]} key={index}>
-              {object.anchoredObject}
-            </mesh>
-          );
-        }
+        return (
+          <mesh ref={(el: any) => (objectsRef.current[index] = el)} key={index}>
+            {object.anchoredObject}
+          </mesh>
+        );
       })}
     </Fragment>
   );
