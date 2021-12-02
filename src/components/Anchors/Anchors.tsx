@@ -20,6 +20,7 @@ export function Anchors(props: AnchorsProps) {
   
   useXRFrame((time, xrFrame: XRFrame) => {
     if (xrRefSpace) {
+      let updateAnchors = false;
       props.anchoredObjects?.forEach((object, index) => {
         if (xrFrame.trackedAnchors?.has(object.anchor)) {
           const anchorPose = xrFrame.getPose(
@@ -35,22 +36,19 @@ export function Anchors(props: AnchorsProps) {
               anchorPose.transform.position.z,
             ];
 
-
-
             if (newPositions && newPositions[index]) {
-              /* console.log(position);
-              console.log(newPositions[index]); */
-              console.log(1)
+              const samePosition = position.every((value, i) => value === newPositions![index][i])
+              if (!samePosition) updateAnchors = true;
 
               newPositions[index] = position;
               setPositions(newPositions);
             } else if (newPositions) {
-              console.log(2)
+              updateAnchors = true;
 
               newPositions.push(position);
               setPositions(newPositions);
             } else {
-              console.log(3)
+              updateAnchors = true;
               
               newPositions = [position];
               setPositions(newPositions);
@@ -58,7 +56,7 @@ export function Anchors(props: AnchorsProps) {
           }
         }
       });
-            setKey(key + 1);
+      if (updateAnchors) setKey(key + 1);
     }
   });
 
@@ -66,7 +64,6 @@ export function Anchors(props: AnchorsProps) {
     // TODO: führt schnell zu viel zu vielen Rerendern durch automatisches updaten
     <Fragment key={key}>
       {props.anchoredObjects?.map((object, index) => {
-        console.log("anchor rerender")
         if (positions && positions[index]) {
           return (
             <mesh position={positions[index]} key={index}>
