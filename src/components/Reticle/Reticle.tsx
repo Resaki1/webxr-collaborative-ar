@@ -8,11 +8,9 @@ import { useGLTF } from "@react-three/drei";
 // @ts-ignore
 import { GLTF } from "three-stdlib";
 import { useHitTest, useXREvent } from "@react-three/xr";
-import type {
-  XRAnchor,
-  XRHitTestResult,
-} from "webxr";
+import type { XRAnchor, XRHitTestResult } from "webxr";
 import { useThree } from "@react-three/fiber";
+import Chair from "../Chair/Chair";
 
 type GLTFResult = GLTF & {
   nodes: {
@@ -34,32 +32,32 @@ interface ReticleProps {
 export default function Reticle(props: ReticleProps) {
   const group = useRef<THREE.Group>();
   const { nodes, materials } = useGLTF(
-    "gltf/reticle/reticle.gltf",
+    "gltf/reticle/reticle.gltf"
   ) as GLTFResult;
   const [currentHit, setCurrentHit] = useState<XRHitTestResult>();
 
   const state = useThree();
-  const xrRefSpace = state.gl.xr.getReferenceSpace()
-  
+  const xrRefSpace = state.gl.xr.getReferenceSpace();
+
   useHitTest((hitMatrix, hit) => {
     setCurrentHit(hit);
     hitMatrix.decompose(
       group.current.position,
       group.current.rotation,
-      group.current.scale,
+      group.current.scale
     );
   });
 
   useXREvent("select", () => {
     if (currentHit && xrRefSpace) {
       const pose = currentHit.getPose(xrRefSpace);
-      
+
       if (pose) {
         // @ts-ignore
         currentHit.createAnchor().then((anchor: XRAnchor) => {
           props.pushAnchoredObject({
             anchor,
-            anchoredObject: <boxGeometry args={[0.1, 0.1, 0.1]} />,
+            anchoredObject: <Chair />,
           });
           props.placeObject([
             pose?.transform.position.x,
