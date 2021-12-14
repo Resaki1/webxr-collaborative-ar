@@ -7,7 +7,7 @@ title: Vitra Eames Plastic Chair
 */
 // @ts-ignore-line
 import * as THREE from "three";
-import React, { useRef } from "react";
+import { useRef } from "react";
 import { useGLTF } from "@react-three/drei";
 import { GLTF } from "three-stdlib";
 
@@ -25,7 +25,7 @@ type GLTFResult = GLTF & {
 
 export default function Chair({ ...props }: JSX.IntrinsicElements["group"]) {
   const group = useRef<THREE.Group>();
-  const { nodes, materials } = useGLTF("gltf/chair/chair.gltf") as GLTFResult;
+  const { nodes } = useGLTF("gltf/chair/chair.gltf") as GLTFResult;
   return (
     <group ref={group} {...props} dispose={null} scale={[0.1, 0.1, 0.1]}>
       <group rotation={[-Math.PI / 2, 0, 0]} scale={[0.1, 0.1, 0.1]}>

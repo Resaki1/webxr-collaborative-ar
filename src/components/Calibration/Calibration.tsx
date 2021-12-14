@@ -6,6 +6,7 @@ import type {
   XRAnchor,
   XRFrame,
   XRHitTestResult,
+  XRReferenceSpace,
   XRRigidTransform,
 } from "webxr";
 import { isolateYaw } from "../../ts/vectors";
@@ -17,6 +18,7 @@ interface CalibrationProps {
     anchoredObject: any;
     anchor: XRAnchor;
   }) => void;
+  setRefSpace: (refSpace: XRReferenceSpace) => void;
 }
 
 export default function Calibration(props: CalibrationProps) {
@@ -26,6 +28,7 @@ export default function Calibration(props: CalibrationProps) {
 
   const state = useThree();
   const xrRefSpace = state.gl.xr.getReferenceSpace();
+  props.setRefSpace(xrRefSpace);
 
   let isCalibrating = true;
 
