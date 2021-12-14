@@ -15,6 +15,7 @@ import { useThree } from "@react-three/fiber";
 interface CalibrationProps {
   setCalibrating: React.Dispatch<React.SetStateAction<boolean>>;
   pushAnchoredObject: (anchoredObject: {
+    id: number;
     anchoredObject: any;
     anchor: XRAnchor;
   }) => void;
@@ -48,6 +49,7 @@ export default function Calibration(props: CalibrationProps) {
       // @ts-ignore
       currentHit.createAnchor().then((anchor: XRAnchor) => {
         props.pushAnchoredObject({
+          id: Math.random(),
           anchor,
           anchoredObject: (
             <mesh>

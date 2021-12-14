@@ -7,8 +7,8 @@ import { useRef } from "react";
 import { useGLTF } from "@react-three/drei";
 // @ts-ignore
 import { GLTF } from "three-stdlib";
-import { useHitTest, useXREvent } from "@react-three/xr";
-import type { XRAnchor, XRHitTestResult } from "webxr";
+import { useHitTest } from "@react-three/xr";
+import type { XRHitTestResult } from "webxr";
 
 type GLTFResult = GLTF & {
   nodes: {
@@ -20,10 +20,6 @@ type GLTFResult = GLTF & {
 };
 
 interface ReticleProps {
-  pushAnchoredObject: (anchoredObject: {
-    anchoredObject: any;
-    anchor: XRAnchor;
-  }) => void;
   setCurrentHitTestResult: (hitTest: XRHitTestResult | undefined) => void;
   currentHitTestResult: XRHitTestResult | undefined;
 }
@@ -42,8 +38,6 @@ export default function Reticle(props: ReticleProps) {
       group.current.scale
     );
   });
-
-  useXREvent("select", (e) => {});
 
   return (
     <group ref={group} {...props} dispose={null}>

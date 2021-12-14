@@ -17,8 +17,10 @@ function App() {
   const [calibratingState, setCalibratingState] = useState(true);
   const [refSpace, setRefSpace] = useState<XRReferenceSpace | undefined>();
   const [currentHit, setCurrentHit] = useState<XRHitTestResult | undefined>();
+  const [selectedObject, setSelectedObject] = useState<number | undefined>();
   const [anchoredObjectsState, setAnchoredObjects] = useState<
     {
+      id: number;
       anchoredObject: any;
       anchor: XRAnchor;
     }[]
@@ -34,6 +36,7 @@ function App() {
   const [sendObject, setSendObject] = useState(() => (_: any) => undefined);
 
   const pushAnchoredObject = (anchoredObject: {
+    id: number;
     anchoredObject: any;
     anchor: XRAnchor;
   }) => {
@@ -78,6 +81,7 @@ function App() {
         // @ts-ignore
         currentHit.createAnchor().then((anchor: XRAnchor) => {
           pushAnchoredObject({
+            id: Math.random(),
             anchor,
             anchoredObject: <Chair />,
           });
@@ -91,7 +95,16 @@ function App() {
         });
       }
     }
-    /* sendObject(data); */
+  };
+
+  const removeObject = () => {
+    // TODO: ersten zwei objekte nicht entfernen
+    // TODO: auch receivedObjects berücksichtigen
+    // TODO: Veränderung an andere Clients schicken
+    setAnchoredObjects(
+      anchoredObjectsState.filter((object) => object.id !== selectedObject)
+    );
+    setSelectedObject(undefined);
   };
 
   return (
@@ -115,7 +128,6 @@ function App() {
             room && (
               <>
                 <Reticle
-                  pushAnchoredObject={pushAnchoredObject}
                   setCurrentHitTestResult={setCurrentHit}
                   currentHitTestResult={currentHit}
                 />
@@ -123,10 +135,19 @@ function App() {
               </>
             )
           )}
-          <Anchors anchoredObjects={anchoredObjectsState} />
+          <Anchors
+            anchoredObjects={anchoredObjectsState}
+            selectedObject={selectedObject}
+            setSelectedObject={setSelectedObject}
+          />
         </Suspense>
       </ARCanvas>
-      <DomOverlay visible={!calibratingState} placeObject={placeObject} />
+      <DomOverlay
+        visible={!calibratingState}
+        placeObject={placeObject}
+        selectedObject={selectedObject}
+        removeObject={removeObject}
+      />
     </>
   );
 }

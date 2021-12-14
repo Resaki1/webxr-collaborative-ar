@@ -20,8 +20,26 @@
   user-select: none;
 }
 
+.deleteButton {
+  width: 96px;
+  height: 48px;
+  margin-bottom: 8vh;
+  border: none;
+  border-radius: 8px;
+  background-color: #ff6161db;
+  box-shadow: 0px 0px 10px #ff6161;
+  color: white;
+  font-weight: bolder;
+  font-size: 1rem;
+  user-select: none;
+}
+
 .placeButton:active {
   background-color: #7df481;
+}
+
+.deleteButton:active {
+  background-color: #ff6161;
 }
 
 .visible {

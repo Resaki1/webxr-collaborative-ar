@@ -1,13 +1,17 @@
-import { useXRFrame } from "@react-three/xr";
-import { Fragment, useEffect, useRef } from "react";
+//@ts-ignore-nextline
+import { Interactive, useXRFrame } from "@react-three/xr";
+import { Dispatch, Fragment, SetStateAction, useEffect, useRef } from "react";
 import type { XRAnchor, XRFrame } from "webxr";
 import { useThree } from "@react-three/fiber";
 
 interface AnchorsProps {
   anchoredObjects?: {
+    id: number;
     anchoredObject: any;
     anchor: XRAnchor;
   }[];
+  selectedObject: number | undefined;
+  setSelectedObject: Dispatch<SetStateAction<number | undefined>>;
 }
 
 export function Anchors(props: AnchorsProps) {
@@ -42,13 +46,23 @@ export function Anchors(props: AnchorsProps) {
 
   return (
     <Fragment>
-      {props.anchoredObjects?.map((object, index) => {
-        return (
-          <mesh ref={(el: any) => (objectsRef.current[index] = el)} key={index}>
+      {props.anchoredObjects?.map((object, index) => (
+        <mesh
+          ref={(el: any) => (objectsRef.current[index] = el)}
+          key={index}
+          scale={object.id === props.selectedObject ? 1.2 : 1}
+        >
+          <Interactive
+            onSelect={(_) =>
+              props.selectedObject === object.id
+                ? props.setSelectedObject(undefined)
+                : props.setSelectedObject(object.id)
+            }
+          >
             {object.anchoredObject}
-          </mesh>
-        );
-      })}
+          </Interactive>
+        </mesh>
+      ))}
     </Fragment>
   );
 }
