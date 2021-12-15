@@ -1,4 +1,4 @@
-import React, { Suspense, useState } from "react";
+import { Suspense, useEffect, useState } from "react";
 import { ARCanvas } from "@react-three/xr";
 import { XRAnchor, XRHitTestResult, XRReferenceSpace } from "webxr";
 // @ts-ignore
@@ -35,6 +35,9 @@ function App() {
 
   const [room, setRoom] = useState<any>();
   const [sendObject, setSendObject] = useState(() => (_: any) => undefined);
+  const [sendDeletion, setSendDeletion] = useState(
+    () => (_: number) => undefined
+  );
 
   const pushAnchoredObject = (anchoredObject: {
     id: number;
@@ -50,12 +53,12 @@ function App() {
     setReceivedObjects(newReceivedObjects);
   };
 
-  React.useEffect(() => {
+  useEffect(() => {
     setRoom(joinRoom({ appId: "ar-p2p" }, "1"));
   }, []);
 
   // Networking
-  React.useEffect(() => {
+  useEffect(() => {
     if (room) {
       room.onPeerJoin((id: any) => {
         console.log(`${id} joined`);
@@ -65,7 +68,10 @@ function App() {
       });
 
       const [sendObjectFunction, getObject] = room.makeAction("place");
+      const [sendDeletionFunction, getDeletion] = room.makeAction("remove");
       setSendObject(() => (data: any) => sendObjectFunction(data));
+      setSendDeletion(() => (id: number) => sendDeletionFunction(id));
+
       getObject((data: any) => {
         const newObject = {
           id: data.id,
@@ -74,6 +80,7 @@ function App() {
         };
         pushReceivedObject(newObject);
       });
+      getDeletion((id: number) => removeObject(id));
     }
   }, [room]);
 
@@ -102,33 +109,31 @@ function App() {
     }
   };
 
-  const removeObject = () => {
+  const removeObject = (id: number) => {
     // TODO: ersten zwei objekte nicht entfernen
-    // TODO: auch receivedObjects berücksichtigen
-    // TODO: Veränderung an andere Clients schicken
 
-    let index = anchoredObjectsState.findIndex(
-      (object) => object.id === selectedObject
-    );
-    if (index > -1) {
-      const newAnchoredObjects = anchoredObjectsState;
-      newAnchoredObjects.splice(index, 1);
-      setAnchoredObjects(newAnchoredObjects);
-    } else {
-      index = receivedObjects.findIndex(
-        (object) => object.id === selectedObject
-      );
+    setAnchoredObjects((currentAnchors) => {
+      let index = currentAnchors.findIndex((object) => object.id === id);
 
-      console.log(index);
       if (index > -1) {
-        const newReceivedObjects = receivedObjects;
-        console.log(receivedObjects[0]);
-        newReceivedObjects.splice(index, 1);
-        setReceivedObjects(newReceivedObjects);
-        console.log(receivedObjects[0]);
+        const newAnchoredObjects = currentAnchors;
+        newAnchoredObjects.splice(index, 1);
+        return newAnchoredObjects;
+      } else {
+        setReceivedObjects((currentObjects) => {
+          index = currentObjects.findIndex((object) => object.id === id);
+          console.log(index);
+          if (index > -1) {
+            const newReceivedObjects = currentObjects;
+            newReceivedObjects.splice(index, 1);
+            return newReceivedObjects;
+          } else return currentObjects;
+        });
       }
-    }
+      return currentAnchors;
+    });
 
+    sendDeletion(id);
     setSelectedObject(undefined);
   };
 

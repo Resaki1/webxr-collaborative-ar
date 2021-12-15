@@ -4,14 +4,21 @@ interface DomOverlayProps {
   visible: boolean;
   placeObject: () => void;
   selectedObject: number | undefined;
-  removeObject: () => void;
+  removeObject: (id: number) => void;
 }
 
 const DomOverlay = (props: DomOverlayProps) => {
   return (
     <div id="overlay" className={props.visible ? "visible" : "hidden"}>
       {props.selectedObject ? (
-        <button className="deleteButton" onClick={() => props.removeObject()}>
+        <button
+          className="deleteButton"
+          onClick={
+            props.selectedObject
+              ? () => props.removeObject(props.selectedObject!)
+              : undefined
+          }
+        >
           remove
         </button>
       ) : (

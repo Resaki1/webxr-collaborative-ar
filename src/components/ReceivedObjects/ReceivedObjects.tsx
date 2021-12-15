@@ -17,7 +17,11 @@ export function ReceivedObjects(props: ReceivedObjectsProps) {
       {props.objects.map(
         (object, index) =>
           object && (
-            <mesh position={object.matrix} key={index}>
+            <mesh
+              position={object.matrix}
+              key={index}
+              scale={object.id === props.selectedObject ? 1.2 : 1}
+            >
               <Interactive
                 onSelect={(_) =>
                   props.selectedObject === object.id
