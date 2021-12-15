@@ -128,6 +128,7 @@ function App() {
             room && (
               <>
                 <Reticle
+                  setRefSpace={setRefSpace}
                   setCurrentHitTestResult={setCurrentHit}
                   currentHitTestResult={currentHit}
                 />
