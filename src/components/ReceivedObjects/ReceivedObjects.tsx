@@ -1,27 +1,32 @@
-import { Fragment, useEffect, useState } from "react";
+import { Interactive } from "@react-three/xr";
+import { Dispatch, Fragment, SetStateAction, useEffect, useState } from "react";
 
 interface ReceivedObjectsProps {
   objects: {
+    id: number;
     object: any;
     matrix: number[];
   }[];
+  selectedObject: number | undefined;
+  setSelectedObject: Dispatch<SetStateAction<number | undefined>>;
 }
 
 export function ReceivedObjects(props: ReceivedObjectsProps) {
-  const [key, setKey] = useState(0);
-  const [objects, setObjects] = useState(props.objects);
-  useEffect(() => {
-    setObjects([...objects, props.objects[0]]);
-    setKey(key + 1);
-  }, [props.objects]);
-
   return (
-    <Fragment key={key}>
-      {objects.map(
+    <Fragment key={props.objects.length}>
+      {props.objects.map(
         (object, index) =>
           object && (
             <mesh position={object.matrix} key={index}>
-              {object.object}
+              <Interactive
+                onSelect={(_) =>
+                  props.selectedObject === object.id
+                    ? props.setSelectedObject(undefined)
+                    : props.setSelectedObject(object.id)
+                }
+              >
+                {object.object}
+              </Interactive>
             </mesh>
           )
       )}

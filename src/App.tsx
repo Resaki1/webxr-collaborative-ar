@@ -27,6 +27,7 @@ function App() {
   >([]);
   const [receivedObjects, setReceivedObjects] = useState<
     {
+      id: number;
       object: any;
       matrix: number[];
     }[]
@@ -44,15 +45,17 @@ function App() {
   };
 
   const pushReceivedObject = (newObject: any) => {
-    setReceivedObjects([...receivedObjects, newObject]);
+    const newReceivedObjects = receivedObjects;
+    newReceivedObjects.push(newObject);
+    setReceivedObjects(newReceivedObjects);
   };
 
   React.useEffect(() => {
     setRoom(joinRoom({ appId: "ar-p2p" }, "1"));
   }, []);
 
+  // Networking
   React.useEffect(() => {
-    // Networking
     if (room) {
       room.onPeerJoin((id: any) => {
         console.log(`${id} joined`);
@@ -65,8 +68,9 @@ function App() {
       setSendObject(() => (data: any) => sendObjectFunction(data));
       getObject((data: any) => {
         const newObject = {
+          id: data.id,
           object: <Chair />,
-          matrix: data,
+          matrix: data.matrix,
         };
         pushReceivedObject(newObject);
       });
@@ -80,8 +84,9 @@ function App() {
       if (pose) {
         // @ts-ignore
         currentHit.createAnchor().then((anchor: XRAnchor) => {
+          const id = Math.random();
           pushAnchoredObject({
-            id: Math.random(),
+            id,
             anchor,
             anchoredObject: <Chair />,
           });
@@ -91,7 +96,7 @@ function App() {
             pose?.transform.position.y,
             pose?.transform.position.z,
           ];
-          sendObject(matrix);
+          sendObject({ id, matrix });
         });
       }
     }
@@ -101,9 +106,29 @@ function App() {
     // TODO: ersten zwei objekte nicht entfernen
     // TODO: auch receivedObjects berücksichtigen
     // TODO: Veränderung an andere Clients schicken
-    setAnchoredObjects(
-      anchoredObjectsState.filter((object) => object.id !== selectedObject)
+
+    let index = anchoredObjectsState.findIndex(
+      (object) => object.id === selectedObject
     );
+    if (index > -1) {
+      const newAnchoredObjects = anchoredObjectsState;
+      newAnchoredObjects.splice(index, 1);
+      setAnchoredObjects(newAnchoredObjects);
+    } else {
+      index = receivedObjects.findIndex(
+        (object) => object.id === selectedObject
+      );
+
+      console.log(index);
+      if (index > -1) {
+        const newReceivedObjects = receivedObjects;
+        console.log(receivedObjects[0]);
+        newReceivedObjects.splice(index, 1);
+        setReceivedObjects(newReceivedObjects);
+        console.log(receivedObjects[0]);
+      }
+    }
+
     setSelectedObject(undefined);
   };
 
@@ -132,7 +157,11 @@ function App() {
                   setCurrentHitTestResult={setCurrentHit}
                   currentHitTestResult={currentHit}
                 />
-                <ReceivedObjects objects={receivedObjects} />
+                <ReceivedObjects
+                  objects={receivedObjects}
+                  selectedObject={selectedObject}
+                  setSelectedObject={setSelectedObject}
+                />
               </>
             )
           )}
