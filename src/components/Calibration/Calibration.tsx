@@ -1,5 +1,5 @@
 import { useHitTest, useXREvent, useXRFrame } from "@react-three/xr";
-import React, { useRef, useState } from "react";
+import React, { Dispatch, SetStateAction, useRef, useState } from "react";
 // @ts-ignore
 import * as THREE from "three";
 import type {
@@ -14,11 +14,9 @@ import { useThree } from "@react-three/fiber";
 
 interface CalibrationProps {
   setCalibrating: React.Dispatch<React.SetStateAction<boolean>>;
-  pushAnchoredObject: (anchoredObject: {
-    id: number;
-    anchoredObject: any;
-    anchor: XRAnchor;
-  }) => void;
+  pushAnchoredObject: Dispatch<
+    SetStateAction<{ id: number; anchoredObject: any; anchor: XRAnchor }[]>
+  >;
   setRefSpace: (refSpace: XRReferenceSpace) => void;
 }
 
@@ -36,11 +34,12 @@ export default function Calibration(props: CalibrationProps) {
   useHitTest((hitMatrix, hit) => {
     if (isCalibrating) {
       setCurrentHit(hit);
-      hitMatrix.decompose(
-        mesh.current.position,
-        mesh.current.rotation,
-        mesh.current.scale
-      );
+      if (mesh.current)
+        hitMatrix.decompose(
+          mesh.current.position,
+          mesh.current.rotation,
+          mesh.current.scale
+        );
     }
   });
 
@@ -48,17 +47,22 @@ export default function Calibration(props: CalibrationProps) {
     if (currentHit) {
       // @ts-ignore
       currentHit.createAnchor().then((anchor: XRAnchor) => {
-        props.pushAnchoredObject({
-          id: Math.random(),
-          anchor,
-          anchoredObject: (
-            <mesh>
-              <octahedronGeometry args={[0.05, 0]} />
-              <meshStandardMaterial
-                color={anchors?.length !== 1 ? "#051c59" : "#7df481"}
-              />
-            </mesh>
-          ),
+        props.pushAnchoredObject((currentState) => {
+          const newAnchoredObject = {
+            id: Math.random(),
+            anchor,
+            anchoredObject: (
+              <mesh>
+                <octahedronGeometry args={[0.05, 0]} />
+                <meshStandardMaterial
+                  color={anchors?.length !== 1 ? "#051c59" : "#7df481"}
+                />
+              </mesh>
+            ),
+          };
+          const newAnchoredObjects = currentState;
+          newAnchoredObjects.push(newAnchoredObject);
+          return newAnchoredObjects;
         });
 
         let newAnchors = anchors;

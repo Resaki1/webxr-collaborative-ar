@@ -44,7 +44,9 @@ function App() {
     anchoredObject: any;
     anchor: XRAnchor;
   }) => {
-    setAnchoredObjects([...anchoredObjectsState, anchoredObject]);
+    const newAnchoredObjects = anchoredObjectsState;
+    newAnchoredObjects.push(anchoredObject);
+    setAnchoredObjects(newAnchoredObjects);
   };
 
   const pushReceivedObject = (newObject: any) => {
@@ -62,6 +64,8 @@ function App() {
     if (room) {
       room.onPeerJoin((id: any) => {
         console.log(`${id} joined`);
+        console.log(anchoredObjectsState);
+        console.log(receivedObjects);
       });
       room.onPeerLeave((id: any) => {
         console.log(`${id} left`);
@@ -122,7 +126,6 @@ function App() {
       } else {
         setReceivedObjects((currentObjects) => {
           index = currentObjects.findIndex((object) => object.id === id);
-          console.log(index);
           if (index > -1) {
             const newReceivedObjects = currentObjects;
             newReceivedObjects.splice(index, 1);
@@ -152,7 +155,7 @@ function App() {
             <Calibration
               setRefSpace={setRefSpace}
               setCalibrating={setCalibratingState}
-              pushAnchoredObject={pushAnchoredObject}
+              pushAnchoredObject={setAnchoredObjects}
             />
           ) : (
             room && (
