@@ -2,7 +2,7 @@ import { Suspense, useEffect, useState } from "react";
 import { ARCanvas } from "@react-three/xr";
 import { XRAnchor, XRHitTestResult, XRReferenceSpace } from "webxr";
 // @ts-ignore
-import { joinRoom } from "trystero";
+import { joinRoom } from "trystero/src/firebase";
 
 import "./App.css";
 
@@ -59,7 +59,15 @@ function App() {
   };
 
   useEffect(() => {
-    setRoom(joinRoom({ appId: "ar-p2p" }, "1"));
+    setRoom(
+      joinRoom(
+        {
+          appId:
+            "https://collaborative-ar-web-default-rtdb.europe-west1.firebasedatabase.app/",
+        },
+        "1"
+      )
+    );
   }, []);
 
   // Networking
