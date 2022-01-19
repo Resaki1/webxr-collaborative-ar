@@ -49,6 +49,7 @@ export function Anchors(props: AnchorsProps) {
           );
           const object = objectsRef.current[index];
 
+          // TODO: if anchor is one of the two markers, re-calibrate the reference space
           if (object) {
             object.position.x = anchorPose?.transform.position.x;
             object.position.y = anchorPose?.transform.position.y;

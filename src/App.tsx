@@ -49,9 +49,12 @@ function App() {
     setAnchoredObjects(newAnchoredObjects);
   };
 
-  const pushReceivedObject = (newObject: any) => {
+  const pushReceivedObject = (
+    newObjects: { id: number; object: any; matrix: number[] }[]
+  ) => {
     const newReceivedObjects = receivedObjects;
-    newReceivedObjects.push(newObject);
+    newReceivedObjects.push(...newObjects);
+    console.log("newReceivedObjects", newReceivedObjects);
     setReceivedObjects(newReceivedObjects);
   };
 
@@ -65,24 +68,33 @@ function App() {
       room.onPeerJoin((id: any) => {
         console.log(`${id} joined`);
         console.log(anchoredObjectsState);
-        console.log(receivedObjects);
+        const sceneObjects: { id: number; matrix: number[] }[] = [];
+        receivedObjects.forEach((object) =>
+          sceneObjects.push({ id: object.id, matrix: object.matrix })
+        );
+        console.log("sending", sceneObjects);
+        sendObject(sceneObjects);
       });
       room.onPeerLeave((id: any) => {
         console.log(`${id} left`);
       });
 
-      const [sendObjectFunction, getObject] = room.makeAction("place");
+      const [sendObjectFunction, getObjects] = room.makeAction("place");
       const [sendDeletionFunction, getDeletion] = room.makeAction("remove");
       setSendObject(() => (data: any) => sendObjectFunction(data));
       setSendDeletion(() => (id: number) => sendDeletionFunction(id));
 
-      getObject((data: any) => {
-        const newObject = {
-          id: data.id,
-          object: <Chair />,
-          matrix: data.matrix,
-        };
-        pushReceivedObject(newObject);
+      getObjects((data: { id: number; matrix: number[] }[]) => {
+        const newObjects: { id: number; object: any; matrix: number[] }[] = [];
+        data.forEach((object) =>
+          newObjects.push({
+            id: object.id,
+            object: <Chair />,
+            matrix: object.matrix,
+          })
+        );
+        console.log("received", newObjects);
+        pushReceivedObject(newObjects);
       });
       getDeletion((id: number) => removeObject(id));
     }
@@ -107,7 +119,7 @@ function App() {
             pose?.transform.position.y,
             pose?.transform.position.z,
           ];
-          sendObject({ id, matrix });
+          sendObject([{ id, matrix }]);
         });
       }
     }

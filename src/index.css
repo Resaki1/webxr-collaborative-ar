@@ -14,10 +14,19 @@ body {
     sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  background-color: #f4f7ff;
+  background-color: white;
 }
 
 code {
   font-family: source-code-pro, Menlo, Monaco, Consolas, "Courier New",
     monospace;
+}
+
+#ARButton {
+  opacity: 1 !important;
+  background: #051c59 !important;
+  border-color: #051c59 !important;
+  font-weight: bolder !important;
+  box-shadow: 0px 0px 10px #051c59 !important;
+  bottom: calc(50% - 20.5px) !important;
 }
