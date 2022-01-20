@@ -96,7 +96,7 @@ export default function Calibration(props: CalibrationProps) {
           directionVector.x,
           directionVector.y,
           directionVector.z
-        );
+        ).normalize();
         const rotationQuaternion = new THREE.Quaternion().setFromUnitVectors(
           xAxis,
           dirVector
