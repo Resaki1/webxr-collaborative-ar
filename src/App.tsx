@@ -14,15 +14,16 @@ import DomOverlay from "./components/DomOverlay/DomOverlay";
 import Chair from "./components/Chair/Chair";
 
 function App() {
-  const [calibratingState, setCalibratingState] = useState(true);
+  const [calibratingState, setCalibrating] = useState(true);
   const [refSpace, setRefSpace] = useState<XRReferenceSpace | undefined>();
   const [currentHit, setCurrentHit] = useState<XRHitTestResult | undefined>();
   const [selectedObject, setSelectedObject] = useState<number | undefined>();
-  const [anchoredObjectsState, setAnchoredObjects] = useState<
+  const [anchoredObjects, setAnchoredObjects] = useState<
     {
       id: number;
       anchoredObject: any;
       anchor: XRAnchor;
+      matrix: number[] | undefined;
     }[]
   >([]);
   const [receivedObjects, setReceivedObjects] = useState<
@@ -34,7 +35,9 @@ function App() {
   >([]);
 
   const [room, setRoom] = useState<any>();
-  const [sendObject, setSendObject] = useState(() => (_: any) => undefined);
+  const [sendObject, setSendObject] = useState(
+    () => (_: any, id?: any) => undefined
+  );
   const [sendDeletion, setSendDeletion] = useState(
     () => (_: number) => undefined
   );
@@ -43,8 +46,9 @@ function App() {
     id: number;
     anchoredObject: any;
     anchor: XRAnchor;
+    matrix: number[] | undefined;
   }) => {
-    const newAnchoredObjects = anchoredObjectsState;
+    const newAnchoredObjects = anchoredObjects;
     newAnchoredObjects.push(anchoredObject);
     setAnchoredObjects(newAnchoredObjects);
   };
@@ -74,14 +78,21 @@ function App() {
   useEffect(() => {
     if (room) {
       room.onPeerJoin((id: any) => {
+        // TODO: get from database
         console.log(`${id} joined`);
-        console.log(anchoredObjectsState);
+        console.log(anchoredObjects);
         const sceneObjects: { id: number; matrix: number[] }[] = [];
+        anchoredObjects.forEach(
+          (object, index) =>
+            index > 1 &&
+            object.matrix &&
+            sceneObjects.push({ id: object.id, matrix: object.matrix })
+        );
         receivedObjects.forEach((object) =>
           sceneObjects.push({ id: object.id, matrix: object.matrix })
         );
         console.log("sending", sceneObjects);
-        sendObject(sceneObjects);
+        sendObject(sceneObjects, id);
       });
       room.onPeerLeave((id: any) => {
         console.log(`${id} left`);
@@ -120,6 +131,7 @@ function App() {
             id,
             anchor,
             anchoredObject: <Chair />,
+            matrix: undefined,
           });
 
           const matrix = [
@@ -129,6 +141,10 @@ function App() {
           ];
           sendObject([{ id, matrix }]);
         });
+        console.log(
+          `${pose?.transform.position.x}\n${pose?.transform.position.y}\n${pose?.transform.position.z}`
+        );
+        window.navigator.vibrate(10);
       }
     }
   };
@@ -174,7 +190,7 @@ function App() {
           {calibratingState ? (
             <Calibration
               setRefSpace={setRefSpace}
-              setCalibrating={setCalibratingState}
+              setCalibrating={setCalibrating}
               pushAnchoredObject={setAnchoredObjects}
             />
           ) : (
@@ -194,7 +210,7 @@ function App() {
             )
           )}
           <Anchors
-            anchoredObjects={anchoredObjectsState}
+            anchoredObjects={anchoredObjects}
             selectedObject={selectedObject}
             setSelectedObject={setSelectedObject}
           />

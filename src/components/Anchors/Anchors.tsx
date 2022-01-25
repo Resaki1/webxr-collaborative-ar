@@ -16,6 +16,7 @@ interface AnchorsProps {
     id: number;
     anchoredObject: any;
     anchor: XRAnchor;
+    matrix: number[] | undefined;
   }[];
   selectedObject: number | undefined;
   setSelectedObject: Dispatch<SetStateAction<number | undefined>>;
@@ -47,13 +48,19 @@ export function Anchors(props: AnchorsProps) {
             value.anchor.anchorSpace,
             xrRefSpace
           );
+
           const object = objectsRef.current[index];
 
           // TODO: if anchor is one of the two markers, re-calibrate the reference space
-          if (object) {
-            object.position.x = anchorPose?.transform.position.x;
-            object.position.y = anchorPose?.transform.position.y;
-            object.position.z = anchorPose?.transform.position.z;
+          if (object && anchorPose) {
+            value.matrix = [
+              anchorPose.transform.position.x,
+              anchorPose.transform.position.y,
+              anchorPose.transform.position.z,
+            ];
+            object.position.x = anchorPose.transform.position.x;
+            object.position.y = anchorPose.transform.position.y;
+            object.position.z = anchorPose.transform.position.z;
           }
         }
       });

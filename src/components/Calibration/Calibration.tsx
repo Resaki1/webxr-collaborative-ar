@@ -15,7 +15,14 @@ import { useThree } from "@react-three/fiber";
 interface CalibrationProps {
   setCalibrating: React.Dispatch<React.SetStateAction<boolean>>;
   pushAnchoredObject: Dispatch<
-    SetStateAction<{ id: number; anchoredObject: any; anchor: XRAnchor }[]>
+    SetStateAction<
+      {
+        id: number;
+        anchoredObject: any;
+        anchor: XRAnchor;
+        matrix: number[] | undefined;
+      }[]
+    >
   >;
   setRefSpace: (refSpace: XRReferenceSpace) => void;
 }
@@ -59,6 +66,7 @@ export default function Calibration(props: CalibrationProps) {
                 />
               </mesh>
             ),
+            matrix: undefined,
           };
           const newAnchoredObjects = currentState;
           newAnchoredObjects.push(newAnchoredObject);
