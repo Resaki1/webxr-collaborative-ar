@@ -23,7 +23,7 @@ const DomOverlay = (props: DomOverlayProps) => {
         </button>
       ) : (
         <button className="placeButton" onClick={() => props.placeObject()}>
-          place
+          test
         </button>
       )}
     </div>

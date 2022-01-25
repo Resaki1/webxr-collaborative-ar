@@ -16,17 +16,19 @@ export const convertToEuler = (quat: number[]) => {
 
 export const getOrientationAbs = (quat: number[]) => convertToEuler(quat)[1];
 
-export const isolateYaw = (quat: {
+export const isolateYaw = (quaternion: {
   w: number;
   x: number;
   y: number;
   z: number;
 }) => {
-  const mag = Math.sqrt(quat.w * quat.w + quat.y * quat.y);
+  const magnitude = Math.sqrt(
+    quaternion.w * quaternion.w + quaternion.y * quaternion.y
+  );
   return {
-    w: quat.w / mag,
+    w: quaternion.w / magnitude,
     x: 0,
-    y: quat.y / mag,
+    y: quaternion.y / magnitude,
     z: 0,
   };
 };
