@@ -117,6 +117,7 @@ function App() {
       });
       getDeletion((id: number) => removeObject(id));
     }
+    // eslint-disable-next-line
   }, [room]);
 
   const placeObject = () => {

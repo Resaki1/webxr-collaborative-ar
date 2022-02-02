@@ -1,5 +1,5 @@
 import { Interactive } from "@react-three/xr";
-import { Dispatch, Fragment, SetStateAction, useEffect, useState } from "react";
+import { Dispatch, Fragment, SetStateAction } from "react";
 
 interface ReceivedObjectsProps {
   objects: {

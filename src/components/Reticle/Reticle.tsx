@@ -35,7 +35,7 @@ export default function Reticle(props: ReticleProps) {
 
   useEffect(() => {
     props.setRefSpace(xrRefSpace);
-  }, [xrRefSpace]);
+  }, [xrRefSpace, props]);
 
   useHitTest((hitMatrix, hit) => {
     props.setCurrentHitTestResult(hit);
